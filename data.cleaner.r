@@ -9,12 +9,5 @@ samples.counts <- length(ref[1,])
 pos.counts <- length(ref[,1])
 
 coverage <- ref.cut + non.cut # generates coverage profile
-
-which(coverage == 0, arr.ind = TRUE) # this finds the indicies of zero coverage
-
-# The following is too large to run, and is full of divide by zero errors
-mixture <- matrix(0, ncol = samples.counts, nrow = pos.counts)
-for(i in 1:samples.counts)
-{
-  mixture[,i] <- non.cut[,i]/coverage[,i]
-} # generates mixture profile
+mixture <- non.cut/coverage # generate mixture profile
+mixture[is.na(mixture)] <- -1 # tag each location of zero coverage
