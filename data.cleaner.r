@@ -5,34 +5,50 @@
 # ref.cut <- ref[,-c(1,2)]
 # non.cut <- non[,-c(1,2)]
 
-samples.counts <- length(ref[1,])
-pos.counts <- length(ref[,1])
+samples.counts <- length(ref.cut[1,])
+pos.counts <- length(ref.cut[,1])
 
 coverage <- ref.cut + non.cut # generates coverage profile
 mixture <- non.cut/coverage # generate mixture profile
 # mixture[is.na(mixture)] <- -1 # tag each location of zero coverage
 
-## Sample Specific 99% Confidence Intervals (of mixture data) ##
 
-alpha = 0.01
-data.vec <- rep(0,0)
-confidence.interval <- matrix(0, ncol=2, nrow=samples.counts)
+## PART 1: Confidence Intervals ##
 
-for(i in 1:3500)
+mixture.total.CI <- quantile(mixture, probs = c(0.05, 0.5, 0.95), na.rm=TRUE)
+coverage.total.CI <- quantile(coverage, probs = c(0.05, 0.5, 0.95), na.rm=TRUE)
+
+mixture.CIs <- matrix(0, nrow = samples.counts, ncol = 3)
+coverage.CIs <- matrix(0, nrow = samples.counts, ncol = 3)
+
+for (k in 1:samples.counts)
 {
-  mu <- mean(mixture[,i], na.rm=TRUE)
-  N <- pos.counts - sum(is.na(mixture[,i]))
-  std.error <- sd(mixture[,i], na.rm=TRUE)/sqrt(N)
-  z.lower <- qnorm((alpha/2), mean = mu, sd = std.error)
-  z.upper <- qnorm(1 - (alpha/2), mean = mu, sd = std.error)
-  confidence.interval[i,] <- c(z.lower, z.upper)
-  data.vec <- c(data.vec, mixture[,i])
+  coverage.CIs[k,] <- quantile((sort(coverage[,k])), probs = c(0.05, 0.5, 0.95), na.rm=TRUE)
+  mixture.CIs[k,] <- quantile((sort(mixture[,k])), probs = c(0.05, 0.5, 0.95), na.rm=TRUE)
 }
 
-## Aggregate Confidence Interval ##
-  mu.dataset <- mean(data.vec, na.rm=TRUE)
-  N.dataset <- length(data.vec) - sum(is.na(data.vec))
-  std.error.dataset <- sd(data.vec, na.rm=TRUE)/sqrt(N.dataset)
-  z.lower <- qnorm((alpha/2), mean = mu.dataset, sd = std.error.dataset)
-  z.upper <- qnorm(1-(alpha/2), mean = mu.dataset, sd = std.error.dataset)
-  confidence.interval.total <- c(z.lower, z.upper)
+## PART 2: Assessing the Clumpiness of Data ##
+## Clumpiness Functions ##
+how.concentrated <- function(vec)
+{
+  max.cov <- max(table(sort(vec))/pos.counts)
+  return(max.cov*100)
+}
+
+Mode <- function(x) 
+{
+  ux <- unique(x)
+  ux[which.max(tabulate(match(x, ux)))]
+}
+
+## Visualizing ##
+conc.stats <- matrix(0, ncol = samples.counts, nrow = 2)
+for (j in 1:samples.counts)
+{
+  conc.stats[1,j] <- how.concentrated(coverage[,j])
+  conc.stats[2,j] <- Mode(coverage[,j])
+}
+
+hist(conc.stats[2,], breaks=500) # here's the distribution of coverage modes. the peak at 40 is concerning
+hist(conc.stats[2,], breaks=500, xlim=c(0,200)) # more zoomed in version of above: Poisson(s)???
+plot(coverage[,622]) # this is what those really high-coverage samples look like
