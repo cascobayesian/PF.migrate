@@ -52,3 +52,34 @@ for (j in 1:samples.counts)
 hist(conc.stats[2,], breaks=500) # here's the distribution of coverage modes. the peak at 40 is concerning
 hist(conc.stats[2,], breaks=500, xlim=c(0,200)) # more zoomed in version of above: Poisson(s)???
 plot(coverage[,622]) # this is what those really high-coverage samples look like
+
+M <- 300
+pdf('coverages_raw.pdf',height=12,width=16)
+
+par(mfrow=c(10,10),mar=rep(0.1,4))
+
+for(j in 1:M)
+{
+  plot(coverage[,j],xlab="",ylab="",type='p',axes=FALSE)
+  text(x = 15,y=20,label=j,cex=1.5,col="blue")
+  box()
+}
+
+dev.off()
+
+
+index <- which(conc.stats[1,] <10)
+
+M <- 300
+pdf('coverages_pruned.pdf',height=12,width=16)
+
+par(mfrow=c(10,10),mar=rep(0.1,4))
+
+for(j in index[1:300])
+{
+  plot(coverage[,j],xlab="",ylab="",type='p',axes=FALSE)
+  text(x = 15,y=20,label=j,cex=1.5,col="blue")
+  box()
+}
+
+dev.off()
