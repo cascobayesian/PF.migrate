@@ -83,3 +83,47 @@ for(j in index[1:300])
 }
 
 dev.off()
+
+## the following code is incomplete
+psm <- matrix(0, nrow = pos.counts, ncol= samples.counts)
+ssm <- matrix(0, nrow = pos.counts, ncol= samples.counts)
+
+for (j in 1:pos.counts) # one for each positions
+{
+  denom <- as.numeric(quantile(coverage[j,], 0.5))
+  for (i in 1:samples.counts)
+  {
+   psm[j,i] <- coverage[j,i]/denom # position-specific median
+   ssm[j,i] <- coverage[j,i]/as.numeric(quantile(coverage[,i], 0.5)) # sample-specific median
+  }
+}
+
+M <- 300 # pos.counts
+pdf('Position_medians.pdf',height=12,width=16)
+
+par(mfrow=c(10,10),mar=rep(0.1,4))
+
+for(j in 1:pos.counts)
+{
+
+  hist(psm[j,],xlab="",ylab="",axes=FALSE)
+  text(x = 15,y=20,label=j,cex=1.5,col="blue")
+  box()
+}
+
+dev.off()
+
+M <- 300 # pos.counts
+pdf('Sample_medians.pdf',height=12,width=16)
+
+par(mfrow=c(10,10),mar=rep(0.1,4))
+
+for(j in 1:pos.counts)
+{
+  
+  hist(ssm[j,],xlab="",ylab="",axes=FALSE)
+  text(x = 15,y=20,label=j,cex=1.5,col="blue")
+  box()
+}
+
+dev.off()
